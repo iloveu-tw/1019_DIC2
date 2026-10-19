@@ -1,0 +1,6 @@
+﻿number_of_features,selected_features,cv_rmse_mean,cv_rmse_std,cv_r2_mean
+1,R&D Spend,9745.400782319539,2884.972538252696,0.9199423723200347
+2,"R&D Spend, Marketing Spend",9482.344018607651,2866.421393852298,0.9247245409149608
+3,"R&D Spend, Administration, Marketing Spend",9678.076017204627,3177.796192183563,0.9209830926407729
+4,"R&D Spend, Administration, Marketing Spend, State_New York",9921.630539183458,3180.207518856812,0.9149367249527456
+5,"R&D Spend, Administration, Marketing Spend, State_Florida, State_New York",10274.909218384279,3311.2140806583816,0.9092000718769336

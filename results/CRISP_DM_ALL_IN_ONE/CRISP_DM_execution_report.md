@@ -14,6 +14,20 @@ Forward SFS   9592.221823  3075.342488    0.922404
     LassoCV   9824.091110  3065.389274    0.916510
 ```
 
+## 特徵數量比較（訓練集 CV，探索性）
+
+```text
+ number_of_features                                                         selected_features  cv_rmse_mean  cv_rmse_std  cv_r2_mean
+                  1                                                                 R&D Spend   9745.400782  2884.972538    0.919942
+                  2                                                R&D Spend, Marketing Spend   9482.344019  2866.421394    0.924725
+                  3                                R&D Spend, Administration, Marketing Spend   9678.076017  3177.796192    0.920983
+                  4                R&D Spend, Administration, Marketing Spend, State_New York   9921.630539  3180.207519    0.914937
+                  5 R&D Spend, Administration, Marketing Spend, State_Florida, State_New York  10274.909218  3311.214081    0.909200
+```
+- 圖表：`P5_feature_count_dashboard.png`、`P5_feature_count_rmse.png`、`P5_feature_count_r2.png`
+- 四方法趨勢圖：`P5_four_methods_feature_count.png`；詳細 CSV：`P5_four_methods_feature_count.csv`
+- 特徵子集依整份訓練集選出，再用同一訓練集 CV 評分；上述趨勢圖屬探索性，可能偏樂觀；勿與巢狀 CV、測試績效混用。
+
 ## 最終方法：RFECV
 - 入選特徵：R&D Spend, Marketing Spend
 
@@ -30,4 +44,4 @@ Forward SFS   9592.221823  3075.342488    0.922404
 ## 限制
 - 資料集規模小，交叉驗證結果可能不穩定。
 - 在多種方法中選最佳者可能造成估計偏樂觀；留存測試集僅在最後評估。
-- 模型不代表因果關係；此處未進行網站部署。
+- 模型不代表因果關係；此處未進行 GitHub Pages 部署。

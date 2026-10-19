@@ -2,7 +2,7 @@
   "problem": "Predict startup Profit by multiple linear regression",
   "target": "Profit",
   "approach": "CRISP-DM",
-  "date": "2026-10-19T19:45:41.710202",
+  "date": "2026-10-19T19:52:50.405896",
   "data_source": "/Users/summer/NCHU_project/AIIS_DIC2/data/50_Startups.csv",
   "total_rows": 50,
   "train_rows": 40,
@@ -36,6 +36,185 @@
       "cv_rmse_mean": 9824.091110409932,
       "cv_rmse_std": 3065.3892739565613,
       "cv_r2_mean": 0.9165098931229967
+    }
+  ],
+  "feature_count_cv_results": [
+    {
+      "number_of_features": 1,
+      "selected_features": "R&D Spend",
+      "cv_rmse_mean": 9745.400782319539,
+      "cv_rmse_std": 2884.972538252696,
+      "cv_r2_mean": 0.9199423723200347
+    },
+    {
+      "number_of_features": 2,
+      "selected_features": "R&D Spend, Marketing Spend",
+      "cv_rmse_mean": 9482.344018607651,
+      "cv_rmse_std": 2866.421393852298,
+      "cv_r2_mean": 0.9247245409149608
+    },
+    {
+      "number_of_features": 3,
+      "selected_features": "R&D Spend, Administration, Marketing Spend",
+      "cv_rmse_mean": 9678.076017204627,
+      "cv_rmse_std": 3177.796192183563,
+      "cv_r2_mean": 0.9209830926407729
+    },
+    {
+      "number_of_features": 4,
+      "selected_features": "R&D Spend, Administration, Marketing Spend, State_New York",
+      "cv_rmse_mean": 9921.630539183458,
+      "cv_rmse_std": 3180.207518856812,
+      "cv_r2_mean": 0.9149367249527456
+    },
+    {
+      "number_of_features": 5,
+      "selected_features": "R&D Spend, Administration, Marketing Spend, State_Florida, State_New York",
+      "cv_rmse_mean": 10274.909218384279,
+      "cv_rmse_std": 3311.2140806583816,
+      "cv_r2_mean": 0.9092000718769336
+    }
+  ],
+  "four_methods_feature_count": [
+    {
+      "method": "Exhaustive",
+      "number_of_features": 1,
+      "selected_features": "R&D Spend",
+      "cv_rmse_mean": 9745.400782319539,
+      "cv_r2_mean": 0.9199423723200347
+    },
+    {
+      "method": "Forward SFS",
+      "number_of_features": 1,
+      "selected_features": "R&D Spend",
+      "cv_rmse_mean": 9745.400782319539,
+      "cv_r2_mean": 0.9199423723200347
+    },
+    {
+      "method": "RFE ranking",
+      "number_of_features": 1,
+      "selected_features": "R&D Spend",
+      "cv_rmse_mean": 9745.400782319539,
+      "cv_r2_mean": 0.9199423723200347
+    },
+    {
+      "method": "Lasso L1 ranking",
+      "number_of_features": 1,
+      "selected_features": "R&D Spend",
+      "cv_rmse_mean": 9745.400782319539,
+      "cv_r2_mean": 0.9199423723200347
+    },
+    {
+      "method": "Exhaustive",
+      "number_of_features": 2,
+      "selected_features": "R&D Spend, Marketing Spend",
+      "cv_rmse_mean": 9482.344018607651,
+      "cv_r2_mean": 0.9247245409149608
+    },
+    {
+      "method": "Forward SFS",
+      "number_of_features": 2,
+      "selected_features": "R&D Spend, Marketing Spend",
+      "cv_rmse_mean": 9482.344018607651,
+      "cv_r2_mean": 0.9247245409149608
+    },
+    {
+      "method": "RFE ranking",
+      "number_of_features": 2,
+      "selected_features": "R&D Spend, Marketing Spend",
+      "cv_rmse_mean": 9482.344018607651,
+      "cv_r2_mean": 0.9247245409149608
+    },
+    {
+      "method": "Lasso L1 ranking",
+      "number_of_features": 2,
+      "selected_features": "R&D Spend, Marketing Spend",
+      "cv_rmse_mean": 9482.344018607651,
+      "cv_r2_mean": 0.9247245409149608
+    },
+    {
+      "method": "Exhaustive",
+      "number_of_features": 3,
+      "selected_features": "R&D Spend, Administration, Marketing Spend",
+      "cv_rmse_mean": 9678.076017204632,
+      "cv_r2_mean": 0.9209830926407729
+    },
+    {
+      "method": "Forward SFS",
+      "number_of_features": 3,
+      "selected_features": "R&D Spend, Marketing Spend, Administration",
+      "cv_rmse_mean": 9678.076017204632,
+      "cv_r2_mean": 0.9209830926407729
+    },
+    {
+      "method": "RFE ranking",
+      "number_of_features": 3,
+      "selected_features": "R&D Spend, Administration, Marketing Spend",
+      "cv_rmse_mean": 9678.076017204632,
+      "cv_r2_mean": 0.9209830926407729
+    },
+    {
+      "method": "Lasso L1 ranking",
+      "number_of_features": 3,
+      "selected_features": "R&D Spend, Marketing Spend, Administration",
+      "cv_rmse_mean": 9678.076017204632,
+      "cv_r2_mean": 0.9209830926407729
+    },
+    {
+      "method": "Exhaustive",
+      "number_of_features": 4,
+      "selected_features": "R&D Spend, Administration, Marketing Spend, State_New York",
+      "cv_rmse_mean": 9921.630539183456,
+      "cv_r2_mean": 0.9149367249527458
+    },
+    {
+      "method": "Forward SFS",
+      "number_of_features": 4,
+      "selected_features": "R&D Spend, Marketing Spend, Administration, State_New York",
+      "cv_rmse_mean": 9921.630539183456,
+      "cv_r2_mean": 0.9149367249527458
+    },
+    {
+      "method": "RFE ranking",
+      "number_of_features": 4,
+      "selected_features": "R&D Spend, Administration, Marketing Spend, State_Florida",
+      "cv_rmse_mean": 10043.14205543307,
+      "cv_r2_mean": 0.9147110901247991
+    },
+    {
+      "method": "Lasso L1 ranking",
+      "number_of_features": 4,
+      "selected_features": "R&D Spend, Marketing Spend, Administration, State_Florida",
+      "cv_rmse_mean": 10043.14205543307,
+      "cv_r2_mean": 0.9147110901247991
+    },
+    {
+      "method": "Exhaustive",
+      "number_of_features": 5,
+      "selected_features": "R&D Spend, Administration, Marketing Spend, State_Florida, State_New York",
+      "cv_rmse_mean": 10274.909218384277,
+      "cv_r2_mean": 0.9092000718769337
+    },
+    {
+      "method": "Forward SFS",
+      "number_of_features": 5,
+      "selected_features": "R&D Spend, Marketing Spend, Administration, State_New York, State_Florida",
+      "cv_rmse_mean": 10274.909218384277,
+      "cv_r2_mean": 0.9092000718769337
+    },
+    {
+      "method": "RFE ranking",
+      "number_of_features": 5,
+      "selected_features": "R&D Spend, Administration, Marketing Spend, State_Florida, State_New York",
+      "cv_rmse_mean": 10274.909218384277,
+      "cv_r2_mean": 0.9092000718769337
+    },
+    {
+      "method": "Lasso L1 ranking",
+      "number_of_features": 5,
+      "selected_features": "R&D Spend, Marketing Spend, Administration, State_Florida, State_New York",
+      "cv_rmse_mean": 10274.909218384277,
+      "cv_r2_mean": 0.9092000718769337
     }
   ],
   "test_metrics": {
