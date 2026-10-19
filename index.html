@@ -240,38 +240,73 @@
             <span>📥</span> 下載 JSON
           </button>
         </div>
-      <!-- Model Colors Legend -->
-      <div style="display:flex; justify-content:center; gap:18px; margin-bottom:18px; flex-wrap:wrap; font-size:0.86rem; font-weight:700; background:#f8fafc; padding:10px 16px; border-radius:8px; border:1px solid #e2e8f0;">
-        <span style="color:#2563eb; display:flex; align-items:center; gap:6px;">● LinearRegression</span>
-        <span style="color:#d97706; display:flex; align-items:center; gap:6px;">● Ridge (L2)</span>
-        <span style="color:#059669; display:flex; align-items:center; gap:6px;">● Lasso (L1)</span>
-        <span style="color:#7c3aed; display:flex; align-items:center; gap:6px;">● ElasticNet</span>
-        <span style="color:#0284c7; display:flex; align-items:center; gap:6px;">● BayesianRidge</span>
+      <!-- Interactive Model Filter / Highlight Legend -->
+      <div class="chart-legend-interactive" id="multi-chart-legend">
+        <div class="chart-legend-item" style="color:#2563eb;" data-model="LinearRegression" onmouseenter="highlightChartModel('LinearRegression')" onmouseleave="resetChartModelHighlight()" onclick="togglePinChartModel('LinearRegression')">
+          <span style="font-size:12px;">●</span> LinearRegression
+        </div>
+        <div class="chart-legend-item" style="color:#d97706;" data-model="Ridge" onmouseenter="highlightChartModel('Ridge')" onmouseleave="resetChartModelHighlight()" onclick="togglePinChartModel('Ridge')">
+          <span style="font-size:12px;">●</span> Ridge (L2)
+        </div>
+        <div class="chart-legend-item" style="color:#059669;" data-model="Lasso" onmouseenter="highlightChartModel('Lasso')" onmouseleave="resetChartModelHighlight()" onclick="togglePinChartModel('Lasso')">
+          <span style="font-size:12px;">●</span> Lasso (L1)
+        </div>
+        <div class="chart-legend-item" style="color:#7c3aed;" data-model="ElasticNet" onmouseenter="highlightChartModel('ElasticNet')" onmouseleave="resetChartModelHighlight()" onclick="togglePinChartModel('ElasticNet')">
+          <span style="font-size:12px;">●</span> ElasticNet
+        </div>
+        <div class="chart-legend-item" style="color:#0284c7;" data-model="BayesianRidge" onmouseenter="highlightChartModel('BayesianRidge')" onmouseleave="resetChartModelHighlight()" onclick="togglePinChartModel('BayesianRidge')">
+          <span style="font-size:12px;">●</span> BayesianRidge
+        </div>
       </div>
 
       <div class="charts-dual-grid">
         <div class="chart-panel">
-          <div class="chart-panel-title">各模型 RMSE 隨特徵數量曲線 (Lower is Better)</div>
+          <div class="chart-panel-header">
+            <div class="chart-panel-title" style="margin-bottom:0;">各模型 RMSE 隨特徵數量曲線</div>
+            <span class="chart-panel-badge-low">▼ Lower is Better</span>
+          </div>
           <div class="chart-svg-container" id="chart-multi-rmse"></div>
         </div>
         <div class="chart-panel">
-          <div class="chart-panel-title">各模型 R² 隨特徵數量曲線 (Higher is Better)</div>
+          <div class="chart-panel-header">
+            <div class="chart-panel-title" style="margin-bottom:0;">各模型 R² 隨特徵數量曲線</div>
+            <span class="chart-panel-badge-high">▲ Higher is Better</span>
+          </div>
           <div class="chart-svg-container" id="chart-multi-r2"></div>
         </div>
       </div>
 
       <!-- Results Table -->
-      <h3 style="font-size: 1.1rem; color: #1e293b; margin-top: 24px; margin-bottom: 12px;">Results Table (實驗詳細彙總表)</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-top:28px; margin-bottom:12px; gap:12px;">
+        <div>
+          <h3 style="font-size: 1.18rem; font-weight: 800; color: #0f172a; margin: 0; display:flex; align-items:center; gap:8px;">
+            <span>📋</span> Results Table (25組特徵子集全面評估彙整表)
+          </h3>
+          <p style="font-size: 0.84rem; color: #64748b; margin: 4px 0 0 0;">
+            依測試集最佳擬合品質排列，提供演算法快速篩選標籤與擬合進度條
+          </p>
+        </div>
+        <div class="table-filter-bar" id="comparison-filter-bar">
+          <button class="table-filter-btn active" data-filter="all" onclick="filterComparisonTable('all', this)">全部 (25組)</button>
+          <button class="table-filter-btn" data-filter="top5" onclick="filterComparisonTable('top5', this)">🏆 Top 5 最佳解</button>
+          <button class="table-filter-btn" data-filter="LinearRegression" onclick="filterComparisonTable('LinearRegression', this)">LinearRegression</button>
+          <button class="table-filter-btn" data-filter="Ridge" onclick="filterComparisonTable('Ridge', this)">Ridge</button>
+          <button class="table-filter-btn" data-filter="Lasso" onclick="filterComparisonTable('Lasso', this)">Lasso</button>
+          <button class="table-filter-btn" data-filter="ElasticNet" onclick="filterComparisonTable('ElasticNet', this)">ElasticNet</button>
+          <button class="table-filter-btn" data-filter="BayesianRidge" onclick="filterComparisonTable('BayesianRidge', this)">BayesianRidge</button>
+        </div>
+      </div>
       <div class="comparison-table-wrapper">
         <table class="comparison-table">
           <thead>
             <tr>
-              <th>模型演算法</th>
-              <th>特徵數 k</th>
-              <th>最佳特徵組合</th>
-              <th>5-Fold CV RMSE</th>
-              <th>Test RMSE</th>
-              <th>Test R²</th>
+              <th style="width: 70px; text-align: center;">排名</th>
+              <th style="width: 170px;">模型演算法</th>
+              <th style="width: 95px; text-align: center;">特徵數 k</th>
+              <th>最佳特徵組合 (Selected Predictors)</th>
+              <th style="width: 140px; text-align: right;">5-Fold CV RMSE</th>
+              <th style="width: 175px; text-align: right;">Test RMSE</th>
+              <th style="width: 170px;">Test R² (擬合進度)</th>
             </tr>
           </thead>
           <tbody id="comparison-table-body">
@@ -485,6 +520,9 @@
       <img src="" id="lightbox-img" style="width:100%; border-radius:8px;" alt="Zoomed Plot">
     </div>
   </div>
+
+  <!-- Floating Chart Tooltip -->
+  <div id="chart-floating-tooltip" class="floating-chart-tooltip"></div>
 
   <script src="app.js"></script>
 </body>

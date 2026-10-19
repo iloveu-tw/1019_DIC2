@@ -249,6 +249,23 @@ function updateExplorerUI() {
 // ==============================================================================
 // 6. D3 Line Charts: Single Model Performance (Image 2)
 // ==============================================================================
+const chartFloatingTooltip = document.getElementById("chart-floating-tooltip");
+
+function showChartTooltip(e, htmlContent) {
+  if (!chartFloatingTooltip) return;
+  chartFloatingTooltip.innerHTML = htmlContent;
+  chartFloatingTooltip.style.opacity = 1;
+  const x = e.pageX + 14;
+  const y = e.pageY - 28;
+  chartFloatingTooltip.style.left = `${x}px`;
+  chartFloatingTooltip.style.top = `${y}px`;
+}
+
+function hideChartTooltip() {
+  if (!chartFloatingTooltip) return;
+  chartFloatingTooltip.style.opacity = 0;
+}
+
 function renderSingleModelCharts() {
   renderLineChart("chart-single-rmse", "RMSE", d => d.test_rmse, [7500, 10500], "$", true);
   renderLineChart("chart-single-r2", "R²", d => d.test_r2, [0.89, 0.96], "", false);
@@ -288,7 +305,8 @@ function renderLineChart(containerId, metricName, valueAccessor, fixedDomain, pr
   const modelData = MODEL_BENCHMARK_DATA[currentModel];
   const chartPoints = kList.map(k => ({
     k: k,
-    val: valueAccessor(modelData.k_results[k])
+    val: valueAccessor(modelData.k_results[k]),
+    features: modelData.k_results[k].selected_features
   }));
 
   const xS = d3.scalePoint().domain(kList).range([0, innerW]).padding(0.25);
@@ -350,33 +368,117 @@ function renderLineChart(containerId, metricName, valueAccessor, fixedDomain, pr
       sG.append("circle")
         .attr("cx", xS(d.k))
         .attr("cy", yS(d.val))
-        .attr("r", 10)
-        .attr("fill", "rgba(239, 68, 68, 0.25)")
+        .attr("r", 11)
+        .attr("fill", "rgba(239, 68, 68, 0.22)")
         .attr("stroke", "#ef4444")
-        .attr("stroke-width", 1.5);
+        .attr("stroke-width", 1.8);
     }
 
-    sG.append("circle")
+    const dot = sG.append("circle")
       .attr("cx", xS(d.k))
       .attr("cy", yS(d.val))
-      .attr("r", d.k === currentK ? 6 : 4.5)
+      .attr("r", d.k === currentK ? 6.5 : 4.8)
       .attr("fill", d.k === currentK ? "#ef4444" : color)
       .attr("stroke", "#ffffff")
       .attr("stroke-width", 2)
-      .style("cursor", "pointer")
-      .on("click", () => handleKChange(d.k));
+      .style("cursor", "pointer");
+
+    dot.on("mouseenter", function(e) {
+      d3.select(this).attr("r", 7.5);
+      const valStr = isCurrency ? `$${Math.round(d.val).toLocaleString("en-US")}` : d.val.toFixed(4);
+      const tooltipHtml = `
+        <div style="font-weight:800; color:${color}; font-size:0.9rem; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+          <span>●</span> ${currentModel} (k=${d.k})
+        </div>
+        <div style="font-size:0.8rem; color:#cbd5e1; margin-bottom:4px;">
+          特徵組合: ${d.features.join(", ")}
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace; font-weight:750; color:#38bdf8;">
+          ${metricName}: ${valStr}
+        </div>
+      `;
+      showChartTooltip(e, tooltipHtml);
+    })
+    .on("mousemove", function(e) {
+      if (chartFloatingTooltip) {
+        chartFloatingTooltip.style.left = `${e.pageX + 14}px`;
+        chartFloatingTooltip.style.top = `${e.pageY - 28}px`;
+      }
+    })
+    .on("mouseleave", function() {
+      d3.select(this).attr("r", d.k === currentK ? 6.5 : 4.8);
+      hideChartTooltip();
+    })
+    .on("click", () => handleKChange(d.k));
   });
 }
 
 // ==============================================================================
 // 7. Section 02: Multi-Model Comparison Charts & Table (Image 2)
 // ==============================================================================
-function renderMultiModelCharts() {
-  renderMultiLineChart("chart-multi-rmse", d => d.test_rmse, "$", true);
-  renderMultiLineChart("chart-multi-r2", d => d.test_r2, "", false);
+let pinnedChartModel = null;
+
+function highlightChartModel(mName) {
+  if (pinnedChartModel) return;
+  d3.selectAll(".multi-chart-line").style("opacity", function() {
+    return this.getAttribute("data-model") === mName ? "1" : "0.15";
+  }).style("stroke-width", function() {
+    return this.getAttribute("data-model") === mName ? "3.8px" : "1.8px";
+  });
+  d3.selectAll(".multi-chart-dot").style("opacity", function() {
+    return this.getAttribute("data-model") === mName ? "1" : "0.15";
+  });
+  document.querySelectorAll(".chart-legend-item").forEach(item => {
+    if (item.getAttribute("data-model") !== mName) {
+      item.classList.add("dimmed");
+    } else {
+      item.classList.remove("dimmed");
+    }
+  });
 }
 
-function renderMultiLineChart(containerId, valueAccessor, prefix, isCurrency) {
+function resetChartModelHighlight() {
+  if (pinnedChartModel) return;
+  d3.selectAll(".multi-chart-line").style("opacity", "1").style("stroke-width", "2.6px");
+  d3.selectAll(".multi-chart-dot").style("opacity", "1");
+  document.querySelectorAll(".chart-legend-item").forEach(item => {
+    item.classList.remove("dimmed");
+    item.classList.remove("active");
+  });
+}
+
+function togglePinChartModel(mName) {
+  if (pinnedChartModel === mName) {
+    pinnedChartModel = null;
+    resetChartModelHighlight();
+  } else {
+    pinnedChartModel = mName;
+    document.querySelectorAll(".chart-legend-item").forEach(item => {
+      if (item.getAttribute("data-model") === mName) {
+        item.classList.add("active");
+        item.classList.remove("dimmed");
+      } else {
+        item.classList.remove("active");
+        item.classList.add("dimmed");
+      }
+    });
+    d3.selectAll(".multi-chart-line").style("opacity", function() {
+      return this.getAttribute("data-model") === mName ? "1" : "0.12";
+    }).style("stroke-width", function() {
+      return this.getAttribute("data-model") === mName ? "4px" : "1.6px";
+    });
+    d3.selectAll(".multi-chart-dot").style("opacity", function() {
+      return this.getAttribute("data-model") === mName ? "1" : "0.12";
+    });
+  }
+}
+
+function renderMultiModelCharts() {
+  renderMultiLineChart("chart-multi-rmse", d => d.test_rmse, "$", true, "RMSE");
+  renderMultiLineChart("chart-multi-r2", d => d.test_r2, "", false, "R²");
+}
+
+function renderMultiLineChart(containerId, valueAccessor, prefix, isCurrency, metricLabel) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = "";
@@ -435,50 +537,177 @@ function renderMultiLineChart(containerId, valueAccessor, prefix, isCurrency) {
     const pts = kList.map(k => ({
       k: k,
       val: valueAccessor(MODEL_BENCHMARK_DATA[mName].k_results[k]),
-      method: mName
+      method: mName,
+      features: MODEL_BENCHMARK_DATA[mName].k_results[k].selected_features
     }));
 
     sG.append("path")
       .datum(pts)
+      .attr("class", "multi-chart-line")
+      .attr("data-model", mName)
       .attr("fill", "none")
       .attr("stroke", MODEL_COLORS[mName])
       .attr("stroke-width", 2.6)
       .attr("d", lineGen);
 
-    sG.selectAll(`.dot-${mName}`)
+    const dots = sG.selectAll(`.dot-${mName}`)
       .data(pts)
       .enter()
       .append("circle")
+      .attr("class", "multi-chart-dot")
+      .attr("data-model", mName)
       .attr("cx", d => xS(d.k))
       .attr("cy", d => yS(d.val))
-      .attr("r", 4.2)
+      .attr("r", 4.5)
       .attr("fill", MODEL_COLORS[mName])
       .attr("stroke", "#ffffff")
       .attr("stroke-width", 1.8)
-      .append("title")
-      .text(d => `${d.method} (k=${d.k}): ${isCurrency ? '$' + Math.round(d.val).toLocaleString('en-US') : d.val.toFixed(4)}`);
+      .style("cursor", "pointer");
+
+    dots.on("mouseenter", function(e, d) {
+      d3.select(this).attr("r", 7).attr("stroke-width", 2.5);
+      const valStr = isCurrency ? `$${Math.round(d.val).toLocaleString("en-US")}` : d.val.toFixed(4);
+      const isGlobalBest = (isCurrency && Math.round(d.val) === 8199) || (!isCurrency && d.val.toFixed(4) === "0.9474");
+      const tooltipHtml = `
+        <div style="font-weight:800; font-size:0.9rem; color:${MODEL_COLORS[d.method]}; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+          <span>●</span> ${d.method} (k=${d.k})
+          ${isGlobalBest ? '<span style="background:#10b981; color:white; font-size:0.7rem; padding:1px 6px; border-radius:10px;">🏆 全局最佳</span>' : ''}
+        </div>
+        <div style="font-size:0.78rem; color:#cbd5e1; margin-bottom:4px;">
+          最佳特徵組合: ${d.features.join(", ")}
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace; font-weight:750; color:#38bdf8;">
+          ${metricLabel}: ${valStr}
+        </div>
+      `;
+      showChartTooltip(e, tooltipHtml);
+    })
+    .on("mousemove", function(e) {
+      if (chartFloatingTooltip) {
+        chartFloatingTooltip.style.left = `${e.pageX + 14}px`;
+        chartFloatingTooltip.style.top = `${e.pageY - 28}px`;
+      }
+    })
+    .on("mouseleave", function() {
+      d3.select(this).attr("r", 4.5).attr("stroke-width", 1.8);
+      hideChartTooltip();
+    })
+    .on("click", function(e, d) {
+      handleModelChange(d.method);
+      handleKChange(d.k);
+    });
   });
 }
 
-function populateComparisonTable() {
+function getFeatureChipHtml(feat) {
+  let chipClass = "feature-tag-chip";
+  if (feat.includes("R&D")) chipClass += " feature-tag-rd";
+  else if (feat.includes("Marketing")) chipClass += " feature-tag-mkt";
+  else if (feat.includes("Admin")) chipClass += " feature-tag-admin";
+  else if (feat.includes("State")) chipClass += " feature-tag-state";
+  return `<span class="${chipClass}">${feat}</span>`;
+}
+
+let currentTableFilter = "all";
+
+function filterComparisonTable(filterType, btnEl) {
+  currentTableFilter = filterType;
+  document.querySelectorAll(".table-filter-btn").forEach(b => b.classList.remove("active"));
+  if (btnEl) btnEl.classList.add("active");
+  populateComparisonTable(filterType);
+}
+
+function populateComparisonTable(filterType = currentTableFilter) {
   const tbody = document.getElementById("comparison-table-body");
   if (!tbody) return;
   tbody.innerHTML = "";
 
+  // 1. Gather all 25 rows
+  let allRows = [];
   Object.keys(MODEL_BENCHMARK_DATA).forEach(mName => {
     [1, 2, 3, 4, 5].forEach(k => {
       const rowData = MODEL_BENCHMARK_DATA[mName].k_results[k];
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><strong style="color:${MODEL_COLORS[mName]}">${mName}</strong></td>
-        <td><strong>k=${k}</strong></td>
-        <td style="font-size:0.85rem;">${rowData.selected_features.join(", ")}</td>
-        <td>$${Math.round(rowData.cv_rmse).toLocaleString("en-US")}</td>
-        <td>$${Math.round(rowData.test_rmse).toLocaleString("en-US")}</td>
-        <td><strong>${rowData.test_r2.toFixed(4)}</strong></td>
-      `;
-      tbody.appendChild(tr);
+      allRows.push({
+        method: mName,
+        k: k,
+        features: rowData.selected_features,
+        cv_rmse: rowData.cv_rmse,
+        test_rmse: rowData.test_rmse,
+        test_r2: rowData.test_r2
+      });
     });
+  });
+
+  // 2. Sort by test_rmse ascending (lower is better) to determine global rank
+  allRows.sort((a, b) => a.test_rmse - b.test_rmse);
+  allRows.forEach((r, idx) => {
+    r.rank = idx + 1;
+  });
+
+  const minTestRmse = allRows[0].test_rmse;
+
+  // 3. Filter rows based on user selection
+  let displayedRows = allRows;
+  if (filterType === "top5") {
+    displayedRows = allRows.slice(0, 5);
+  } else if (filterType !== "all") {
+    displayedRows = allRows.filter(r => r.method === filterType);
+  }
+
+  // 4. Render rows with rich DOM badges & progress meters
+  displayedRows.forEach(r => {
+    const tr = document.createElement("tr");
+    const isGlobalBest = (r.test_rmse === minTestRmse);
+    if (isGlobalBest) {
+      tr.classList.add("row-best-global");
+    }
+
+    // Rank badge
+    let rankBadgeHtml = `<span class="rank-badge rank-badge-normal">${r.rank}</span>`;
+    if (r.rank === 1) rankBadgeHtml = `<span class="rank-badge rank-badge-1" title="冠軍 #1">🥇 1</span>`;
+    else if (r.rank === 2) rankBadgeHtml = `<span class="rank-badge rank-badge-2" title="亞軍 #2">🥈 2</span>`;
+    else if (r.rank === 3) rankBadgeHtml = `<span class="rank-badge rank-badge-3" title="季軍 #3">🥉 3</span>`;
+
+    // Algorithm Pill
+    const modelBadgeHtml = `<span class="badge-model badge-model-${r.method}"><span style="color:${MODEL_COLORS[r.method]}">●</span> ${r.method}</span>`;
+
+    // k Pill
+    const kBadgeHtml = `<span class="badge-k-pill">k=${r.k}</span>`;
+
+    // Feature chips
+    const featuresHtml = r.features.map(f => getFeatureChipHtml(f)).join("");
+
+    // Test RMSE with best indicator
+    const testRmseHtml = `
+      <div style="text-align:right; display:flex; align-items:center; justify-content:flex-end; gap:6px;">
+        <span class="metric-num-mono" style="color:${isGlobalBest ? '#047857' : '#0f172a'}; font-weight:${isGlobalBest ? '800' : '700'};">
+          $${Math.round(r.test_rmse).toLocaleString("en-US")}
+        </span>
+        ${isGlobalBest ? '<span class="badge-best-indicator">🏆 最優</span>' : ''}
+      </div>
+    `;
+
+    // R2 progress meter: 0.92 ~ 0.9475 range mapped to 20% ~ 100%
+    const r2Pct = Math.min(100, Math.max(18, Math.round(((r.test_r2 - 0.92) / (0.9475 - 0.92)) * 82 + 18)));
+    const r2Html = `
+      <div class="r2-progress-cell">
+        <span class="metric-num-mono" style="font-weight:750;">${r.test_r2.toFixed(4)}</span>
+        <div class="r2-progress-bar" title="Fit Score: ${(r.test_r2 * 100).toFixed(2)}%">
+          <div class="r2-progress-fill" style="width: ${r2Pct}%;"></div>
+        </div>
+      </div>
+    `;
+
+    tr.innerHTML = `
+      <td style="text-align:center;">${rankBadgeHtml}</td>
+      <td>${modelBadgeHtml}</td>
+      <td style="text-align:center;">${kBadgeHtml}</td>
+      <td>${featuresHtml}</td>
+      <td style="text-align:right;"><span class="metric-num-mono" style="color:#64748b;">$${Math.round(r.cv_rmse).toLocaleString("en-US")}</span></td>
+      <td>${testRmseHtml}</td>
+      <td>${r2Html}</td>
+    `;
+    tbody.appendChild(tr);
   });
 }
 
