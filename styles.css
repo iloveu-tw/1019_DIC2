@@ -224,6 +224,7 @@ body {
 .hero-title span {
   background: linear-gradient(90deg, #7dd3fc 0%, #38bdf8 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -1130,11 +1131,13 @@ body {
   background: #e2e8f0;
   outline: none;
   -webkit-appearance: none;
+  appearance: none;
   cursor: pointer;
 }
 
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
+  appearance: none;
   width: 20px;
   height: 20px;
   border-radius: 50%;
