@@ -170,11 +170,16 @@ open results/CRISP_DM_ALL_IN_ONE
 - 預測關聯**不等於因果關係**，本專案結果不宜直接用作真實投資決策。
 - `joblib` 模型僅應從可信來源載入；其內容不適合在 GitHub Pages 中直接執行。
 
-## 9. GitHub Pages（後續規劃）
+## 9. GitHub Pages 互動展示平台（已上線）
 
-未來可將本次產生的 **PNG、CSV、JSON** 整理成 GitHub Pages 靜態成果展示網站，包含特徵數量趨勢圖、四種演算法比較、結果表格與模型評估摘要。
+專案已完成互動式線性迴歸視覺化平台建置，並正式部署至 GitHub Pages！
 
-**目前僅完成本機分析程式的規劃與產出流程；尚未加入 HTML／JavaScript 頁面，也未進行 GitHub Pages 部署。** GitHub Pages 不會在伺服器上替你執行 Python 模型訓練；需要先在本機產生成果再發布靜態檔案。
+- **🌐 線上體驗網址：** [https://iloveu-tw.github.io/1019_DIC2/](https://iloveu-tw.github.io/1019_DIC2/)
+- **✨ 互動特色：**
+  - **即時迴歸擬合**：支援滑鼠直接拖曳直線，即時更新斜率、截距與動態方程式 $y = mx + b$。
+  - **即時殘差與指標**：動態繪製各點垂直誤差虛線，MSE、RMSE、MAE、$R^2$ 即時連動更新。
+  - **資料切換**：可切換 50 Startups 真實數據（R&D、Marketing、Admin）或隨機模擬教學數據。
+  - **CRISP-DM 成果總結**：完整整合四種特徵選擇演算法（RFECV、Exhaustive、SFS、Lasso）比較表與線上利潤預測器。
 
 ---
 
