@@ -260,8 +260,8 @@ function renderLineChart(containerId, metricName, valueAccessor, fixedDomain, pr
   container.innerHTML = "";
 
   const cWidth = container.clientWidth || 400;
-  const cHeight = 240;
-  const m = { top: 20, right: 30, bottom: 40, left: 65 };
+  const cHeight = 250;
+  const m = { top: 25, right: 30, bottom: 42, left: 68 };
 
   const sSvg = d3.select(`#${containerId}`)
     .append("svg")
@@ -270,6 +270,17 @@ function renderLineChart(containerId, metricName, valueAccessor, fixedDomain, pr
 
   const innerW = cWidth - m.left - m.right;
   const innerH = cHeight - m.top - m.bottom;
+
+  // Linear Gradient Definition
+  const color = MODEL_COLORS[currentModel] || "#0284c7";
+  const defs = sSvg.append("defs");
+  const gradId = `grad-${containerId}`;
+  const grad = defs.append("linearGradient")
+    .attr("id", gradId)
+    .attr("x1", "0%").attr("y1", "0%")
+    .attr("x2", "0%").attr("y2", "100%");
+  grad.append("stop").attr("offset", "0%").attr("stop-color", color).attr("stop-opacity", 0.32);
+  grad.append("stop").attr("offset", "100%").attr("stop-color", color).attr("stop-opacity", 0.02);
 
   const sG = sSvg.append("g").attr("transform", `translate(${m.left},${m.top})`);
 
@@ -280,16 +291,16 @@ function renderLineChart(containerId, metricName, valueAccessor, fixedDomain, pr
     val: valueAccessor(modelData.k_results[k])
   }));
 
-  const xS = d3.scalePoint().domain(kList).range([0, innerW]).padding(0.2);
+  const xS = d3.scalePoint().domain(kList).range([0, innerW]).padding(0.25);
   const minVal = d3.min(chartPoints, d => d.val);
   const maxVal = d3.max(chartPoints, d => d.val);
-  const pad = (maxVal - minVal) * 0.15 || 0.05;
+  const pad = (maxVal - minVal) * 0.16 || 0.05;
 
   const yS = d3.scaleLinear()
     .domain([Math.min(fixedDomain[0], minVal - pad), Math.max(fixedDomain[1], maxVal + pad)])
     .range([innerH, 0]);
 
-  // Grid
+  // Grid lines
   sG.append("g")
     .attr("class", "grid")
     .attr("transform", `translate(0,${innerH})`)
@@ -299,7 +310,7 @@ function renderLineChart(containerId, metricName, valueAccessor, fixedDomain, pr
     .attr("class", "grid")
     .call(d3.axisLeft(yS).ticks(5).tickSize(-innerW).tickFormat(""));
 
-  // Axes
+  // Bottom & Left Axis
   sG.append("g")
     .attr("transform", `translate(0,${innerH})`)
     .call(d3.axisBottom(xS));
@@ -307,7 +318,19 @@ function renderLineChart(containerId, metricName, valueAccessor, fixedDomain, pr
   sG.append("g")
     .call(d3.axisLeft(yS).ticks(5).tickFormat(d => isCurrency ? `$${Math.round(d).toLocaleString("en-US")}` : d.toFixed(3)));
 
-  // Line
+  // Smooth Area Generator
+  const areaGen = d3.area()
+    .x(d => xS(d.k))
+    .y0(innerH)
+    .y1(d => yS(d.val))
+    .curve(d3.curveMonotoneX);
+
+  sG.append("path")
+    .datum(chartPoints)
+    .attr("fill", `url(#${gradId})`)
+    .attr("d", areaGen);
+
+  // Smooth Line Generator
   const lineGen = d3.line()
     .x(d => xS(d.k))
     .y(d => yS(d.val))
@@ -316,23 +339,33 @@ function renderLineChart(containerId, metricName, valueAccessor, fixedDomain, pr
   sG.append("path")
     .datum(chartPoints)
     .attr("fill", "none")
-    .attr("stroke", MODEL_COLORS[currentModel] || "#2563eb")
-    .attr("stroke-width", 2.5)
+    .attr("stroke", color)
+    .attr("stroke-width", 3)
     .attr("d", lineGen);
 
-  // Dots
-  sG.selectAll(".single-dot")
-    .data(chartPoints)
-    .enter()
-    .append("circle")
-    .attr("cx", d => xS(d.k))
-    .attr("cy", d => yS(d.val))
-    .attr("r", d => d.k === currentK ? 7 : 4.5)
-    .attr("fill", d => d.k === currentK ? "#ef4444" : (MODEL_COLORS[currentModel] || "#2563eb"))
-    .attr("stroke", "#ffffff")
-    .attr("stroke-width", 2)
-    .style("cursor", "pointer")
-    .on("click", (event, d) => handleKChange(d.k));
+  // Dots & Halo for currentK
+  chartPoints.forEach(d => {
+    if (d.k === currentK) {
+      // Pulsing outer halo for active k
+      sG.append("circle")
+        .attr("cx", xS(d.k))
+        .attr("cy", yS(d.val))
+        .attr("r", 10)
+        .attr("fill", "rgba(239, 68, 68, 0.25)")
+        .attr("stroke", "#ef4444")
+        .attr("stroke-width", 1.5);
+    }
+
+    sG.append("circle")
+      .attr("cx", xS(d.k))
+      .attr("cy", yS(d.val))
+      .attr("r", d.k === currentK ? 6 : 4.5)
+      .attr("fill", d.k === currentK ? "#ef4444" : color)
+      .attr("stroke", "#ffffff")
+      .attr("stroke-width", 2)
+      .style("cursor", "pointer")
+      .on("click", () => handleKChange(d.k));
+  });
 }
 
 // ==============================================================================
@@ -378,7 +411,7 @@ function renderMultiLineChart(containerId, valueAccessor, prefix, isCurrency) {
     .domain([d3.min(allVals) * 0.98, d3.max(allVals) * 1.02])
     .range([innerH, 0]);
 
-  // Grid
+  // Grid lines
   sG.append("g")
     .attr("class", "grid")
     .attr("transform", `translate(0,${innerH})`)
@@ -397,18 +430,19 @@ function renderMultiLineChart(containerId, valueAccessor, prefix, isCurrency) {
     .y(d => yS(d.val))
     .curve(d3.curveMonotoneX);
 
-  // Plot lines for each method
+  // Plot lines for each method with drop-shadow & smooth dots
   methods.forEach(mName => {
     const pts = kList.map(k => ({
       k: k,
-      val: valueAccessor(MODEL_BENCHMARK_DATA[mName].k_results[k])
+      val: valueAccessor(MODEL_BENCHMARK_DATA[mName].k_results[k]),
+      method: mName
     }));
 
     sG.append("path")
       .datum(pts)
       .attr("fill", "none")
       .attr("stroke", MODEL_COLORS[mName])
-      .attr("stroke-width", 2)
+      .attr("stroke-width", 2.6)
       .attr("d", lineGen);
 
     sG.selectAll(`.dot-${mName}`)
@@ -417,10 +451,12 @@ function renderMultiLineChart(containerId, valueAccessor, prefix, isCurrency) {
       .append("circle")
       .attr("cx", d => xS(d.k))
       .attr("cy", d => yS(d.val))
-      .attr("r", 3.5)
+      .attr("r", 4.2)
       .attr("fill", MODEL_COLORS[mName])
       .attr("stroke", "#ffffff")
-      .attr("stroke-width", 1.5);
+      .attr("stroke-width", 1.8)
+      .append("title")
+      .text(d => `${d.method} (k=${d.k}): ${isCurrency ? '$' + Math.round(d.val).toLocaleString('en-US') : d.val.toFixed(4)}`);
   });
 }
 
