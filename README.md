@@ -16,6 +16,9 @@
 * **線上體驗網址**：[https://iloveu-tw.github.io/1019_DIC2/](https://iloveu-tw.github.io/1019_DIC2/)
 * **原始碼儲存庫**：[https://github.com/iloveu-tw/1019_DIC2](https://github.com/iloveu-tw/1019_DIC2)
 
+[![50 Startups Interactive Regression Explorer Live Demo](docs/images/live_demo_full.png)](https://iloveu-tw.github.io/1019_DIC2/)
+*▲ 點擊上方實機截圖即可直接前往線上互動平台體驗（含 5 大模型切換、特徵篩選與 Results Table 動態評估表）*
+
 ### 平台核心功能亮點
 1. **即時 4 大效能指標監控**：即時呈現 RMSE、Test $R^2$、MAE 與 MSE。
 2. **單一模型特徵探勘器**：支援 5 種演算法切換與特徵維度（$k=1 \sim 5$）即時趨勢圖。
