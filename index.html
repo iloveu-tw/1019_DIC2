@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="互動式多元線性迴歸與 CRISP-DM 機器學習平台：以 Kaggle 50 Startups 真實商業數據為基礎，支援即時拖曳迴歸線、即時誤差計算 (MSE/RMSE/MAE/R²) 與特徵選擇評估。">
+  <title>50 Startups 互動式線性迴歸視覺化平台 | CRISP-DM Machine Learning</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <!-- D3.js v7 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="badge-wrapper">
+        <span class="badge-dot"></span>
+        <span>CRISP-DM × 互動式機器學習 (Interactive ML)</span>
+      </div>
+      <h1>50 Startups Interactive Linear Regression</h1>
+      <p class="subtitle">透過動態畫布探索迴歸本質・拖曳調整擬合直線・即時計算殘差指標・實測 50 Startups 真實商業預測</p>
+    </header>
+
+    <!-- Dataset Selection Tabs -->
+    <div class="dataset-bar" id="dataset-bar">
+      <button class="dataset-btn active" id="btn-ds-rd" onclick="switchDataset('rd')">
+        <span>🚀</span>
+        <span>R&amp;D Spend vs Profit (強相關)</span>
+      </button>
+      <button class="dataset-btn" id="btn-ds-marketing" onclick="switchDataset('marketing')">
+        <span>📢</span>
+        <span>Marketing Spend vs Profit</span>
+      </button>
+      <button class="dataset-btn" id="btn-ds-admin" onclick="switchDataset('admin')">
+        <span>🏢</span>
+        <span>Administration vs Profit</span>
+      </button>
+      <button class="dataset-btn" id="btn-ds-simulated" onclick="switchDataset('simulated')">
+        <span>🎲</span>
+        <span>模擬教學數據 (Simulated)</span>
+      </button>
+    </div>
+
+    <!-- Educational Concepts -->
+    <section class="educational-section">
+      <div class="concept-card">
+        <div class="concept-header">
+          <span>🎯</span>
+          <span>什麼是線性迴歸？</span>
+        </div>
+        <div class="concept-body">
+          線性迴歸（Linear Regression）尋求能最佳擬合資料點的一條直線。在二維空間中以數學直線方程式表達：
+          <div><span class="formula-tag">y = mx + b</span></div>
+          其中 <strong>m</strong> 為斜率（Slope），<strong>b</strong> 為截距（Intercept）。
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-header">
+          <span>📊</span>
+          <span>視覺要素圖解</span>
+        </div>
+        <div class="concept-body">
+          <ul>
+            <li><strong style="color:#6366f1;">● 靛藍色圓點：</strong> 實際資料觀測值（真實支出與利潤）。</li>
+            <li><strong style="color:#ef4444;">— 紅色實線：</strong> 當前模型預測直線（可直接滑鼠拖曳）。</li>
+            <li><strong style="color:#f87171;">┆ 紅色虛線：</strong> 殘差（Residual），即真實值與預測值的距離。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-header">
+          <span>📏</span>
+          <span>誤差評估指標意義</span>
+        </div>
+        <div class="concept-body">
+          <ul>
+            <li><strong>MSE / RMSE：</strong> 均方誤差與均方根誤差，放大懲罰大誤差。</li>
+            <li><strong>MAE：</strong> 平均絕對誤差，直觀反映平均偏離金額。</li>
+            <li><strong>R²（決定係數）：</strong> 介於 0~1，越高代表模型解釋力越強。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-header">
+          <span>🎮</span>
+          <span>互動探索挑戰</span>
+        </div>
+        <div class="concept-body">
+          <ol>
+            <li>手動拖曳紅線或滑桿，嘗試找出使誤差最小的角度。</li>
+            <li>觀察殘差虛線隨直線旋轉與位移時的即時長短變化。</li>
+            <li>點擊 <strong>Optimal (最佳解)</strong> 查看最小平方法 (OLS) 的數學極限解！</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid: Chart & Controls -->
+    <div class="main-grid">
+      <!-- Chart Card -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title-area">
+            <h2 id="chart-main-title">R&amp;D Spend vs Profit 迴歸擬合畫布</h2>
+            <p id="chart-sub-title">資料量：50 家新創公司 | 支援直接滑鼠拖曳直線或點擊畫布加入點</p>
+          </div>
+          <div class="chart-toggles">
+            <label class="toggle-label">
+              <input type="checkbox" id="toggle-residuals" checked onchange="toggleResiduals(this.checked)">
+              <span>顯示殘差虛線 (Residuals)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="chart-svg-wrapper">
+          <svg id="chart"></svg>
+          <div class="chart-tooltip" id="tooltip"></div>
+        </div>
+      </div>
+
+      <!-- Controls Panel -->
+      <aside class="controls-panel">
+        <!-- Parameter Sliders -->
+        <div class="control-card">
+          <div class="card-title">
+            <span>⚙️</span>
+            <span>模型參數調整 (Parameters)</span>
+          </div>
+
+          <div class="param-group">
+            <div class="param-header">
+              <span class="param-name">斜率 Slope (m)</span>
+              <span class="param-val" id="slope-val">0.85</span>
+            </div>
+            <input type="range" id="slope-slider" class="slider" step="0.001">
+          </div>
+
+          <div class="param-group">
+            <div class="param-header">
+              <span class="param-name">截距 Intercept (b)</span>
+              <span class="param-val" id="intercept-val">49000.0</span>
+            </div>
+            <input type="range" id="intercept-slider" class="slider" step="10">
+          </div>
+
+          <div class="equation-box" id="equation-display">
+            y = 0.85x + 49033.33
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="control-card">
+          <div class="card-title">
+            <span>📊</span>
+            <span>即時誤差指標 (Live Metrics)</span>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-box" id="box-mse">
+              <div class="metric-title">MSE (均方誤差)</div>
+              <div class="metric-num" id="metric-mse">0</div>
+            </div>
+            <div class="metric-box" id="box-rmse">
+              <div class="metric-title">RMSE (均方根誤差)</div>
+              <div class="metric-num" id="metric-rmse">0</div>
+            </div>
+            <div class="metric-box" id="box-mae">
+              <div class="metric-title">MAE (平均絕對誤差)</div>
+              <div class="metric-num" id="metric-mae">0</div>
+            </div>
+            <div class="metric-box highlight" id="box-r2">
+              <div class="metric-title">R² (決定係數)</div>
+              <div class="metric-num" id="metric-r2">0.000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="control-card">
+          <div class="card-title">
+            <span>🎯</span>
+            <span>操作功能 (Actions)</span>
+          </div>
+
+          <div class="btn-grid">
+            <button class="btn btn-primary" id="btn-optimal" onclick="applyOptimalLine()">
+              <span>🎯</span>
+              <span>Optimal (最佳解)</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-reset" onclick="resetLine()">
+              <span>🔄</span>
+              <span>Reset (重設)</span>
+            </button>
+            <button class="btn btn-secondary btn-full" id="btn-random-data" onclick="generateRandomPoints()">
+              <span>🎲</span>
+              <span>隨機生成數據 / 加入雜訊</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="control-card">
+          <div class="card-title">
+            <span>💡</span>
+            <span>操作小提示 (Tips)</span>
+          </div>
+          <ul style="font-size: 0.88rem; color: #475569; padding-left: 18px; line-height: 1.6;">
+            <li>用滑鼠<strong>按住紅線直接拖曳</strong>，即可直觀傾斜或位移迴歸線。</li>
+            <li>點擊 <strong>Optimal</strong> 會使用最小平方法 (OLS) 解析解並以流暢動畫歸位。</li>
+            <li>切換至 <strong>50 Startups 真實數據</strong> 觀察真實企業研發投入與獲利的強烈關聯！</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+
+    <!-- CRISP-DM Project Summary & Feature Selection -->
+    <section class="crisp-section">
+      <div class="section-heading">
+        <span>🏆</span>
+        <span>50 Startups 專案 CRISP-DM 六階段研究成果</span>
+      </div>
+
+      <div class="crisp-phases-grid">
+        <div class="phase-card">
+          <div class="phase-tag">Phase 1</div>
+          <div class="phase-name">商業理解</div>
+          <div class="phase-desc">探討研發、行銷、行政支出及州別對企業 Profit 的影響權重。</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-tag">Phase 2</div>
+          <div class="phase-name">資料理解</div>
+          <div class="phase-desc">50 家企業資料檢核：無缺漏值、確認數值分布與相關矩陣。</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-tag">Phase 3</div>
+          <div class="phase-name">資料準備</div>
+          <div class="phase-desc">State 虛擬變數編碼、Pipeline 標準化與 80/20 訓練/測試集劃分。</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-tag">Phase 4</div>
+          <div class="phase-name">模型建立</div>
+          <div class="phase-desc">以多元線性迴歸 (OLS) 搭配巢狀交叉驗證防範資料洩漏。</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-tag">Phase 5</div>
+          <div class="phase-name">模型評估</div>
+          <div class="phase-desc">四種特徵選擇比較，RFECV 獲得最高穩定度與最低 CV RMSE。</div>
+        </div>
+        <div class="phase-card">
+          <div class="phase-tag">Phase 6</div>
+          <div class="phase-name">部署與上線</div>
+          <div class="phase-desc">模型 Joblib 保存驗證、互動式網頁與即時預測計算機部署。</div>
+        </div>
+      </div>
+
+      <!-- Feature Selection Methods Table -->
+      <h3 style="font-size: 1.15rem; color: #1e293b; margin-top: 15px;">特徵選擇演算法外層 5-Fold 交叉驗證評比</h3>
+      <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>演算法 Method</th>
+              <th>CV RMSE (平均 ± 標準差)</th>
+              <th>CV R² 平均</th>
+              <th>入選特徵 Selected Features</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: #f0fdf4;">
+              <td><strong>RFECV (遞迴特徵消除)</strong> <span class="badge-best">推薦最佳</span></td>
+              <td><strong>9,431.97 ± 3,014.94</strong></td>
+              <td><strong>0.9253</strong></td>
+              <td>R&amp;D Spend, Marketing Spend</td>
+              <td>🏆 最佳泛化能力</td>
+            </tr>
+            <tr>
+              <td><strong>Exhaustive (窮舉搜尋 31 子集)</strong></td>
+              <td>9,592.22 ± 3,075.34</td>
+              <td>0.9224</td>
+              <td>R&amp;D Spend, Marketing Spend</td>
+              <td>可得全域最佳但計算量大</td>
+            </tr>
+            <tr>
+              <td><strong>Forward SFS (前向逐步選擇)</strong></td>
+              <td>9,592.22 ± 3,075.34</td>
+              <td>0.9224</td>
+              <td>R&amp;D Spend, Marketing Spend</td>
+              <td>路徑清晰、收斂快速</td>
+            </tr>
+            <tr>
+              <td><strong>LassoCV (L1 正則化稀疏選擇)</strong></td>
+              <td>9,824.09 ± 3,065.39</td>
+              <td>0.9165</td>
+              <td>R&amp;D Spend, Marketing Spend</td>
+              <td>自帶懲罰項，抗共線性</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Interactive Live Profit Predictor -->
+    <section class="crisp-section">
+      <div class="section-heading">
+        <span>🧮</span>
+        <span>即時新創利潤預測計算器 (Live Profit Predictor)</span>
+      </div>
+
+      <div class="predictor-grid">
+        <div class="predictor-inputs">
+          <div class="input-group">
+            <label class="input-label" for="pred-rd">研發支出 R&amp;D Spend ($USD)：</label>
+            <input type="number" id="pred-rd" class="num-input" value="100000" step="5000" min="0" oninput="calculatePrediction()">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="pred-marketing">行銷支出 Marketing Spend ($USD)：</label>
+            <input type="number" id="pred-marketing" class="num-input" value="250000" step="10000" min="0" oninput="calculatePrediction()">
+          </div>
+
+          <div class="input-group">
+            <label class="input-label" for="pred-state">公司登記州別 State：</label>
+            <select id="pred-state" class="num-input" onchange="calculatePrediction()">
+              <option value="California">California (加州)</option>
+              <option value="New York">New York (紐約州)</option>
+              <option value="Florida">Florida (佛羅里達州)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="prediction-result-box">
+          <div class="result-title">預測新創獲利 (Estimated Profit)</div>
+          <div class="result-amount" id="pred-result-amount">$137,862</div>
+          <div class="result-formula" id="pred-result-formula">基於 RFECV 最佳多元迴歸模型 (Test R² = 0.9474, RMSE = 8,198)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>50 Startups Machine Learning Project &copy; 2026 | 依據 CRISP-DM 標準流程建構</p>
+      <p style="margin-top: 6px;">
+        <a href="https://github.com/iloveu-tw/1019_DIC2" target="_blank" rel="noopener">GitHub 原始碼庫 (iloveu-tw/1019_DIC2)</a>
+        &bull;
+        <a href="https://www.interactive-ml.com/linear-regression.html" target="_blank" rel="noopener">互動風格參考 Interactive ML</a>
+      </p>
+    </footer>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
