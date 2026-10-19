@@ -1,0 +1,48 @@
+{
+  "problem": "Predict startup Profit by multiple linear regression",
+  "target": "Profit",
+  "approach": "CRISP-DM",
+  "date": "2026-10-19T19:45:41.710202",
+  "data_source": "/Users/summer/NCHU_project/AIIS_DIC2/data/50_Startups.csv",
+  "total_rows": 50,
+  "train_rows": 40,
+  "test_rows": 10,
+  "best_method": "RFECV",
+  "selected_features": [
+    "R&D Spend",
+    "Marketing Spend"
+  ],
+  "nested_cv_results": [
+    {
+      "method": "RFECV",
+      "cv_rmse_mean": 9431.967686267772,
+      "cv_rmse_std": 3014.936735764495,
+      "cv_r2_mean": 0.925301878261728
+    },
+    {
+      "method": "Exhaustive",
+      "cv_rmse_mean": 9592.221822866772,
+      "cv_rmse_std": 3075.3424880522834,
+      "cv_r2_mean": 0.9224036966504239
+    },
+    {
+      "method": "Forward SFS",
+      "cv_rmse_mean": 9592.221822866772,
+      "cv_rmse_std": 3075.3424880522834,
+      "cv_r2_mean": 0.9224036966504239
+    },
+    {
+      "method": "LassoCV",
+      "cv_rmse_mean": 9824.091110409932,
+      "cv_rmse_std": 3065.3892739565613,
+      "cv_r2_mean": 0.9165098931229967
+    }
+  ],
+  "test_metrics": {
+    "MAE": 6886.594588246508,
+    "MSE": 67220275.37568122,
+    "RMSE": 8198.79719078849,
+    "R2": 0.9474386447268488
+  },
+  "model_reload_predictions_identical": true
+}
